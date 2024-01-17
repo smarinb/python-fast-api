@@ -6,6 +6,7 @@ app = FastAPI()
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 @app.get("/url")
 async def url():
     return {"url": "https://sordotravel.com"}
@@ -16,4 +17,6 @@ async def read_item(item_id):
 
 
 
-#Correr el servidor --> uvicorn main:app --reload
+#Correr el servidor --> uvicorn "name_file":app --reload
+#Doc Swagger --> http://127.0.0.1:8000/docs
+#Doc Redoc --> http://127.0.0.1:8000/redoc
