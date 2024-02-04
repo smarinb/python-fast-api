@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI()
+
+router = APIRouter(prefix="/users", 
+            tags=["Users"],
+            responses={404: {"message": "Not found"}})
 
 
 class User(BaseModel): #Nos da la capacidad de crear una entidad 
@@ -24,7 +27,7 @@ users_list = [
 
 
 
-@app.get("/users_json")
+@router.get("/users_json")
 async def users_json():
     return [{
         "name": "Sergio",
@@ -47,34 +50,35 @@ async def users_json():
 
 print(users_list)
 
-@app.get("/users")
+@router.get("/")
 async def users():
     return users_list
 
 
 
 #Path Parameters
-@app.get("/users/{id}")
+@router.get("/{id}")
 async def user(id: int):
     return search_user(id)
 
 
 
 #Query Parameters
-@app.get("/user/")
+@router.get("/user/")
 async def read_item(id: int = 0):
     return search_user(id)
 
 
-@app.post("/user/")
+@router.post("/user/", response_model=User,status_code=201)
 async def user(user: User):
     if type(search_user(user.id)) == User:
-            return {"Error" : "El usuario ya existe"}     
+            raise HTTPException(status_code=204,detail="El usuario ya existe")
+            #return {"Error" : "El usuario ya existe"}     
     else:
         users_list.append(user)
         return user
 
-@app.put("/user/")
+@router.put("/user/")
 async def user(user: User): #Se le pasa un usuario complero a actualizar
     found: bool = False
     for index, saved_user in enumerate(users_list):
@@ -85,12 +89,14 @@ async def user(user: User): #Se le pasa un usuario complero a actualizar
     if not found:
         return {"Error" : "Usuario no encontrado"}
 
-@app.delete("/user/{id}")
+@router.delete("/user/{id}")
 async def user(id: int):
-    if type(search_user(id)) == User:
-        user : User = search_user(id)
-        users_list.remove(user)
-    else:
+    found : bool = False
+    for index,saved_user in enumerate(users_list):
+        if saved_user.id == id:
+            users_list.remove(saved_user)
+            found = True
+    if not found:
         return {"Error": "El usuario no existe"}
 
     
